@@ -46,7 +46,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -74,17 +73,32 @@ class MainActivity : AppCompatActivity() {
                 response: Response<List<ImageData>>
             ) {
                 if (response.isSuccessful) {
-                    val image = response.body()
-                    val firstImage = image?.firstOrNull()?.imageUrl ?: "No URL"
-                    apiResponseView.text = getString(R.string.image_placeholder, firstImage)
+                    val imageList = response.body()
+                    val firstImage = imageList?.firstOrNull()
 
-                    // pakai Glide langsung
-                    Glide.with(this@MainActivity)
-                        .load(firstImage)
-                        .into(imageResultView)
+                    // ambil nama breed, default Unknown
+                    val breedName = if (firstImage?.breeds.isNullOrEmpty()) {
+                        "Unknown"
+                    } else {
+                        firstImage?.breeds?.firstOrNull()?.name ?: "Unknown"
+                    }
+
+                    // tampilkan nama breed di TextView
+                    apiResponseView.text = getString(
+                        R.string.breed_placeholder,
+                        breedName
+                    )
+
+                    firstImage?.imageUrl?.let { url ->
+                        Glide.with(this@MainActivity)
+                            .load(url)
+                            .into(imageResultView)
+                    }
+
                 } else {
                     Log.e(
-                        MAIN_ACTIVITY, "Failed to get response\n" +
+                        MAIN_ACTIVITY,
+                        "Failed to get response\n" +
                                 response.errorBody()?.string().orEmpty()
                     )
                 }
@@ -96,3 +110,4 @@ class MainActivity : AppCompatActivity() {
         const val MAIN_ACTIVITY = "MAIN_ACTIVITY"
     }
 }
+
